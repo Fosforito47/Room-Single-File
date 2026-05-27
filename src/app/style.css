@@ -1,0 +1,17 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  overflow: hidden; /*Remove scrollabar*/
+}
+
+.webgl {
+  /*Fix canvas position on the top left part of the document*/
+  position: fixed;
+  top: 0;
+  left: 0;
+  outline: none;
+}

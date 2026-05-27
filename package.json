@@ -1,0 +1,25 @@
+{
+  "name": "room-single-file",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Fosforito47/Room-Single-File.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Fosforito47/Room-Single-File/issues"
+  },
+  "homepage": "https://github.com/Fosforito47/Room-Single-File#readme",
+  "dependencies": {
+    "three": "^0.184.0",
+    "vite": "^8.0.14"
+  }
+}

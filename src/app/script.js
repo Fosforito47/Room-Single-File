@@ -24,6 +24,84 @@ const axesHelper = new THREE.AxesHelper(100);
 scene.add(axesHelper);
 
 /*************************************
+ * Sizes
+ ************************************ */
+const sizes = {
+  width: window.innerWidth,
+  height: window.innerHeight,
+};
+
+const pixelRatio = Math.min(window.devicePixelRatio, 2);
+
+/*************************************
+ * Camera
+ ************************************ */
+const camera = new THREE.PerspectiveCamera(
+  35,
+  sizes.width / sizes.height,
+  0.1,
+  200
+);
+camera.position.set(18.17, 8.04, 16.74);
+
+/*************************************
+ * Controls
+ ************************************ */
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true; //Smooth animation
+controls.dampingFactor = 0.05;
+controls.minDistance = 12;
+controls.maxDistance = 35;
+controls.minPolarAngle = 0;
+controls.maxPolarAngle = Math.PI / 2;
+controls.minAzimuthAngle = 0;
+controls.maxAzimuthAngle = Math.PI / 2;
+
+controls.update;
+
+/*********Controls Orbit GUI Debbuger *********/
+const limits = gui.addFolder("Limits");
+limits
+  .add(controls, "minDistance")
+  .min(0)
+  .max(100)
+  .step(0.1)
+  .name("Zoom min distance")
+  .onChange(() => {
+    controls.update();
+  });
+
+limits
+  .add(controls, "maxDistance")
+  .min(0)
+  .max(100)
+  .step(0.1)
+  .name("Zoom max distance")
+  .onChange(() => {
+    controls.update();
+  });
+
+limits
+  .add(controls, "minPolarAngle")
+  .min(0)
+  .max(Math.PI)
+  .step(0.1)
+  .name("Vertical scroll min")
+  .onChange(() => {
+    controls.update();
+  });
+
+limits
+  .add(controls, "maxPolarAngle")
+  .min(0)
+  .max(Math.PI)
+  .step(0.1)
+  .name("Vertical Scroll max")
+  .onChange(() => {
+    controls.update();
+  });
+
+/*************************************
  * Loaders
  ************************************ */
 
@@ -56,46 +134,79 @@ gltfLoader.setDRACOLoader(dracoLoader);
 /*************************************
  * Materials
  ************************************ */
-//Baked Material
-const bakedMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); //ad a basic red material
+//Basic material
+const basicMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); //ad a basic red material
+
+// //Baked Material
+// const bakedTexture = textureLoader.load("/static/textures/Night_Texture_1.jpg");
+// bakedTexture.colorSpace = THREE.SRGBColorSpace; //specify the texture color space
+// const bakedMaterial = new THREE.MeshBasicMaterial({ map: bakedTexture });
+// bakedTexture.flipY = false; //flip texture in the vertical axis
+
+//Create a object with the realtive path of our baked textures
+const enviromentMap = {
+  texture_1: textureLoader.load("/static/textures/Night_Texture_1.jpg"),
+  texture_2: textureLoader.load("/static/textures/Texture_Night_2.jpg"),
+  texture_3: textureLoader.load("/static/textures/Texture_Night_3.jpg"),
+};
+
+//Create an empty object to store our Mesh Basic Material
+const bakedMaterials = {};
+
+//Iterate thru every key pair on our object usin the method 'Object.entrie'
+//The Object.entries() method returns an array of the key/value pairs of an object.
+Object.entries(enviromentMap).forEach(([key, textureObj]) => {
+  textureObj.colorSpace = THREE.SRGBColorSpace; //Change color space to SRGB
+  textureObj.flipY = false; //flip texture
+  bakedMaterials[key] = new THREE.MeshBasicMaterial({ map: textureObj }); //push the new Mesh Material Object into the empty s using the same key
+});
 
 /************Load Model **************/
-gltfLoader.load("/static/models/Room_Baked.glb", (gltf) => {
+//Create a new group to add all our meshes
+const meshGroup = new THREE.Group();
+meshGroup.position.set(-0.01, -4, -0.3);
+scene.add(meshGroup); //add the group to the scene
+
+gltfLoader.load("/static/models/First_Bake.glb", (gltf) => {
   console.log(gltf.scene);
-  scene.add(gltf.scene); //Add the imported model scene to THREE.js scene
+  //   scene.add(gltf.scene); //Add the imported model scene to THREE.js scene
+  meshGroup.add(gltf.scene); //Add the import model to the THREE group
 
   //the 'traverse' method executes a callback function in all the objects
   gltf.scene.traverse((child) => {
-    child.material = bakedMaterial;
+    child.material = bakedMaterials.texture_1;
   });
 });
 
-/*************************************
- * Sizes
- ************************************ */
-const sizes = {
-  width: window.innerWidth,
-  height: window.innerHeight,
-};
+gltfLoader.load("/static/models/Second_Bake.glb", (gltf) => {
+  console.log(gltf.scene);
+  //   scene.add(gltf.scene);
+  meshGroup.add(gltf.scene);
 
-const pixelRatio = Math.min(window.devicePixelRatio, 2);
+  gltf.scene.traverse((child) => {
+    child.material = bakedMaterials.texture_2;
+  });
+});
+gltfLoader.load("/static/models/Third_Bake.glb", (gltf) => {
+  console.log(gltf.scene);
+  //   scene.add(gltf.scene);
+  meshGroup.add(gltf.scene);
 
-/*************************************
- * Camera
- ************************************ */
-const camera = new THREE.PerspectiveCamera(
-  75,
-  sizes.width / sizes.height,
-  1,
-  100
-);
-camera.position.set(10.7, 6.6, 10.1);
+  gltf.scene.traverse((child) => {
+    child.material = bakedMaterials.texture_3;
+  });
+});
 
-/*************************************
- * Controls
- ************************************ */
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true; //Smooth animation
+meshGroup.position.set(3.6, -0.8, 4.1);
+
+/************GUI Debugger for Models **************/
+//Create a  ne Debug folder and add the model postion(x,y,z)
+const folder = gui.addFolder("Model Position");
+folder.add(meshGroup.position, "x").min(-10).max(10).step(0.1).name("Target X");
+
+folder.add(meshGroup.position, "y").min(-10).max(10).step(0.1).name("Target Y");
+
+folder.add(meshGroup.position, "z").min(-10).max(10).step(0.1).name("Target Z");
 
 /*************************************
  * Resize
